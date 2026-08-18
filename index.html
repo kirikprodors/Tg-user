@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             background: var(--tg-theme-bg-color, #18222d); 
             color: var(--tg-theme-text-color, #fff); 
             padding: 16px; 
@@ -100,7 +100,7 @@
         
         <label for="chatSelect" style="margin-top: 8px;">Выбери группу:</label>
         <select id="chatSelect">
-            <option value="">Загрузка групп...</option>
+            <option value="">-- Выбери группу --</option>
         </select>
 
         <label for="manualText" style="margin-top: 10px;">Сообщение:</label>
@@ -114,15 +114,36 @@
         tg.ready();
         tg.expand();
 
-        // Запрашиваем список активных групп из параметров URL или инициализируем
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        function loadChats() {
-            // При открытии отправляем запрос боту на получение списка чатов
-            tg.sendData(JSON.stringify({ action: "request_chats" }));
-        }
+        // Парсим группы из URL-параметров ссылки
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const chatsData = urlParams.get('chats');
+            const select = document.getElementById('chatSelect');
 
-        // Сохранение основных настроек
+            if (chatsData) {
+                try {
+                    // Парсим передаваемый JSON
+                    const chats = JSON.parse(decodeURIComponent(chatsData));
+                    select.innerHTML = ''; // Очищаем список
+                    
+                    if (Object.keys(chats).length === 0) {
+                        select.innerHTML = '<option value="">Группы не найдены</option>';
+                    } else {
+                        for (const [id, title] of Object.entries(chats)) {
+                            const option = document.createElement('option');
+                            option.value = id;
+                            option.textContent = title;
+                            select.appendChild(option);
+                        }
+                    }
+                } catch (e) {
+                    select.innerHTML = '<option value="">Ошибка загрузки групп</option>';
+                }
+            } else {
+                select.innerHTML = '<option value="">Нет известных групп</option>';
+            }
+        };
+
         function saveSettings() {
             const data = {
                 action: "save",
@@ -135,7 +156,6 @@
             tg.close();
         }
 
-        // Отправка сообщения в выбранную группу
         function sendManualMessage() {
             const chatId = document.getElementById('chatSelect').value;
             const text = document.getElementById('manualText').value.trim();

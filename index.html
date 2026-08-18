@@ -24,7 +24,7 @@
         .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .row:last-child { margin-bottom: 0; }
         label { font-size: 14px; font-weight: 500; color: #aaa; display: block; margin-bottom: 6px; }
-        textarea, input[type="number"] { 
+        textarea, input[type="number"], select { 
             width: 100%; 
             padding: 10px; 
             border-radius: 8px; 
@@ -35,7 +35,7 @@
             font-size: 15px;
             outline: none;
         }
-        textarea:focus, input[type="number"]:focus { border-color: #2ea6ff; }
+        textarea:focus, input[type="number"]:focus, select:focus { border-color: #2ea6ff; }
         button { 
             width: 100%; 
             padding: 14px; 
@@ -47,10 +47,11 @@
             font-size: 16px; 
             cursor: pointer; 
             transition: opacity 0.2s;
+            margin-top: 4px;
         }
+        button.danger { background: #e53935; }
         button:active { opacity: 0.8; }
         
-        /* Стили тумблеров (переключателей) */
         .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { 
@@ -86,28 +87,74 @@
 
     <div class="card">
         <label for="knowledge">Живые знания (контекст):</label>
-        <textarea id="knowledge" rows="3" placeholder="Что бот должен знать прямо сейчас..."></textarea>
+        <textarea id="knowledge" rows="2" placeholder="Что бот должен знать прямо сейчас..."></textarea>
     </div>
 
     <button onclick="saveSettings()">Сохранить настройки</button>
+
+    <br><br>
+
+    <!-- РУЧНОЙ ПЕРЕХВАТ -->
+    <div class="card" style="border: 1px solid #e53935;">
+        <label style="color: #ff8a80;">🚨 Ручной перехват:</label>
+        
+        <label for="chatSelect" style="margin-top: 8px;">Выбери группу:</label>
+        <select id="chatSelect">
+            <option value="">Загрузка групп...</option>
+        </select>
+
+        <label for="manualText" style="margin-top: 10px;">Сообщение:</label>
+        <textarea id="manualText" rows="2" placeholder="Текст сообщения..."></textarea>
+        
+        <button class="danger" onclick="sendManualMessage()">🚀 Отправить от бота</button>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
+        // Запрашиваем список активных групп из параметров URL или инициализируем
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        function loadChats() {
+            // При открытии отправляем запрос боту на получение списка чатов
+            tg.sendData(JSON.stringify({ action: "request_chats" }));
+        }
+
+        // Сохранение основных настроек
         function saveSettings() {
             const data = {
+                action: "save",
                 bot_enabled: document.getElementById('botEnabled').checked,
                 group_enabled: document.getElementById('groupEnabled').checked,
                 auto_chance: parseInt(document.getElementById('autoChance').value) || 0,
                 knowledge: document.getElementById('knowledge').value.trim()
             };
-            
-            // Отправка данных обратно в бота
             tg.sendData(JSON.stringify(data));
-            
-            // Закрываем WebApp после отправки
+            tg.close();
+        }
+
+        // Отправка сообщения в выбранную группу
+        function sendManualMessage() {
+            const chatId = document.getElementById('chatSelect').value;
+            const text = document.getElementById('manualText').value.trim();
+
+            if (!chatId) {
+                alert("Сначала выбери группу из списка!");
+                return;
+            }
+            if (!text) {
+                alert("Введи текст сообщения!");
+                return;
+            }
+
+            const data = {
+                action: "manual_send",
+                target_chat_id: chatId,
+                manual_text: text
+            };
+            tg.sendData(JSON.stringify(data));
             tg.close();
         }
     </script>

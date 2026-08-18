@@ -3,41 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Admin</title>
+    <title>AI Admin Panel</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #18222d; color: #fff; padding: 15px; margin: 0; }
-        .card { background: #232e3c; padding: 15px; border-radius: 12px; margin-bottom: 12px; }
-        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        textarea, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #1c2531; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; background: #2ea6ff; border: none; border-radius: 10px; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--tg-theme-bg-color, #18222d); 
+            color: var(--tg-theme-text-color, #fff); 
+            padding: 16px; 
+            margin: 0; 
+            box-sizing: border-box;
+        }
+        h2 { margin-top: 0; margin-bottom: 16px; font-size: 20px; text-align: center; }
+        .card { 
+            background: var(--tg-theme-secondary-bg-color, #232e3c); 
+            padding: 14px; 
+            border-radius: 12px; 
+            margin-bottom: 14px; 
+        }
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .row:last-child { margin-bottom: 0; }
+        label { font-size: 14px; font-weight: 500; color: #aaa; display: block; margin-bottom: 6px; }
+        textarea, input[type="number"] { 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: 1px solid #3b4a5a; 
+            background: #1c2531; 
+            color: #fff; 
+            box-sizing: border-box; 
+            font-size: 15px;
+            outline: none;
+        }
+        textarea:focus, input[type="number"]:focus { border-color: #2ea6ff; }
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--tg-theme-button-color, #2ea6ff); 
+            color: var(--tg-theme-button-text-color, #fff); 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            cursor: pointer; 
+            transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.8; }
+        
+        /* Стили тумблеров (переключателей) */
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .3s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #4a5968; transition: .3s; border-radius: 26px; 
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; 
+            background-color: white; transition: .3s; border-radius: 50%; 
+        }
         input:checked + .slider { background-color: #2ea6ff; }
         input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
-    <h2>⚡ AI Control Panel</h2>
+    <h2>⚡ Управление ботом</h2>
+    
     <div class="card">
         <div class="row">
-            <span>Бот включен</span>
+            <span>Включить бота</span>
             <label class="switch"><input type="checkbox" id="botEnabled" checked><span class="slider"></span></label>
         </div>
         <div class="row">
-            <span>Отвечать в группах</span>
+            <span>Работа в группах</span>
             <label class="switch"><input type="checkbox" id="groupEnabled" checked><span class="slider"></span></label>
-        </div>
-        <div style="margin-top: 10px;">
-            <label>Шанс ответа в чате (%):</label>
-            <input type="number" id="autoChance" value="15" min="0" max="100">
         </div>
     </div>
 
     <div class="card">
-        <label>Живые знания (контекст):</label>
+        <label for="autoChance">Шанс ответа в чате (0-100%):</label>
+        <input type="number" id="autoChance" value="15" min="0" max="100">
+    </div>
+
+    <div class="card">
+        <label for="knowledge">Живые знания (контекст):</label>
         <textarea id="knowledge" rows="3" placeholder="Что бот должен знать прямо сейчас..."></textarea>
     </div>
 
@@ -53,11 +101,14 @@
                 bot_enabled: document.getElementById('botEnabled').checked,
                 group_enabled: document.getElementById('groupEnabled').checked,
                 auto_chance: parseInt(document.getElementById('autoChance').value) || 0,
-                knowledge: document.getElementById('knowledge').value
+                knowledge: document.getElementById('knowledge').value.trim()
             };
             
-            // Отправка данных бота в Telegram
+            // Отправка данных обратно в бота
             tg.sendData(JSON.stringify(data));
+            
+            // Закрываем WebApp после отправки
+            tg.close();
         }
     </script>
 </body>

@@ -3,37 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель управления ИИ</title>
+    <title>Панель управления</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background: #18222d; color: #fff; padding: 15px; margin: 0; }
-        h2 { text-align: center; color: #64b5f6; margin-top: 0; }
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
-        textarea, input, select { width: 100%; box-sizing: border-box; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #2b394a; background: #232e3c; color: #fff; font-size: 14px; }
-        textarea { height: 100px; resize: vertical; }
-        button { width: 100%; padding: 12px; margin-top: 20px; border: none; border-radius: 8px; background: #2ea6ff; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; }
-        button:active { background: #1e88e5; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #18222d); color: var(--tg-theme-text-color, #fff); padding: 20px; }
+        .card { background: var(--tg-theme-secondary-bg-color, #232e3c); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        textarea, input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #1c2531; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #2ea6ff; border: none; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2ea6ff; }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
-    <h2>⚡ AI Control Panel</h2>
-    
-    <label>Актуальные знания (Контекст в реальном времени):</label>
-    <textarea id="knowledge" placeholder="Например: Сегодня новый ролик в 18:00, админ тащит в Бравл!"></textarea>
+    <div class="card">
+        <div class="row">
+            <span>Включить бота</span>
+            <label class="switch"><input type="checkbox" id="botEnabled" checked><span class="slider"></span></label>
+        </div>
+        <div class="row">
+            <span>Отвечать в группах</span>
+            <label class="switch"><input type="checkbox" id="groupEnabled" checked><span class="slider"></span></label>
+        </div>
+        <label>Шанс ответа (0-100%):</label>
+        <input type="number" id="autoChance" value="15">
+    </div>
 
-    <label>Шанс авто-ответа в чате (%):</label>
-    <input type="number" id="autoChance" min="0" max="100" value="3">
+    <label>Инструкция (Живые знания):</label>
+    <textarea id="knowledge" rows="4" placeholder="Напиши, какой бот сегодня..."></textarea>
 
-    <button onclick="sendData()">Сохранить настройки</button>
+    <button onclick="save()">Сохранить настройки</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        function sendData() {
+        function save() {
             const data = {
-                knowledge: document.getElementById('knowledge').value,
-                autoChance: parseInt(document.getElementById('autoChance').value) || 0
+                botEnabled: document.getElementById('botEnabled').checked,
+                groupEnabled: document.getElementById('groupEnabled').checked,
+                autoChance: parseInt(document.getElementById('autoChance').value),
+                knowledge: document.getElementById('knowledge').value
             };
             tg.sendData(JSON.stringify(data));
         }

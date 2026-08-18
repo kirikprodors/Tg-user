@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Admin Panel</title>
+    <title>Управление ботом</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
@@ -22,7 +22,6 @@
             margin-bottom: 14px; 
         }
         .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .row:last-child { margin-bottom: 0; }
         label { font-size: 14px; font-weight: 500; color: #aaa; display: block; margin-bottom: 6px; }
         textarea, input[type="number"], select { 
             width: 100%; 
@@ -35,7 +34,6 @@
             font-size: 15px;
             outline: none;
         }
-        textarea:focus, input[type="number"]:focus, select:focus { border-color: #2ea6ff; }
         button { 
             width: 100%; 
             padding: 14px; 
@@ -46,8 +44,7 @@
             font-weight: bold; 
             font-size: 16px; 
             cursor: pointer; 
-            transition: opacity 0.2s;
-            margin-top: 4px;
+            margin-top: 8px;
         }
         button.danger { background: #e53935; }
         button:active { opacity: 0.8; }
@@ -74,7 +71,7 @@
             <span>Включить бота</span>
             <label class="switch"><input type="checkbox" id="botEnabled" checked><span class="slider"></span></label>
         </div>
-        <div class="row">
+        <div class="row" style="margin-bottom:0;">
             <span>Работа в группах</span>
             <label class="switch"><input type="checkbox" id="groupEnabled" checked><span class="slider"></span></label>
         </div>
@@ -87,26 +84,26 @@
 
     <div class="card">
         <label for="knowledge">Живые знания (контекст):</label>
-        <textarea id="knowledge" rows="2" placeholder="Что бот должен знать прямо сейчас..."></textarea>
+        <textarea id="knowledge" rows="2" placeholder="Что бот должен знать..."></textarea>
     </div>
 
     <button onclick="saveSettings()">Сохранить настройки</button>
 
     <br><br>
 
-    <!-- РУЧНОЙ ПЕРЕХВАТ -->
+    <!-- РУЧНАЯ ОТПРАВКА -->
     <div class="card" style="border: 1px solid #e53935;">
-        <label style="color: #ff8a80;">🚨 Ручной перехват:</label>
+        <label style="color: #ff8a80; font-weight: bold;">📢 Отправить текст от имени бота:</label>
         
-        <label for="chatSelect" style="margin-top: 8px;">Выбери группу:</label>
+        <label for="chatSelect" style="margin-top: 10px;">Выбери группу:</label>
         <select id="chatSelect">
-            <option value="">-- Выбери группу --</option>
+            <option value="">Загрузка...</option>
         </select>
 
-        <label for="manualText" style="margin-top: 10px;">Сообщение:</label>
-        <textarea id="manualText" rows="2" placeholder="Текст сообщения..."></textarea>
+        <label for="manualText" style="margin-top: 10px;">Текст сообщения:</label>
+        <textarea id="manualText" rows="3" placeholder="Напиши текст, который бот просто скопирует и отправит..."></textarea>
         
-        <button class="danger" onclick="sendManualMessage()">🚀 Отправить от бота</button>
+        <button class="danger" onclick="sendManualMessage()">🚀 Отправить точно как есть</button>
     </div>
 
     <script>
@@ -114,7 +111,6 @@
         tg.ready();
         tg.expand();
 
-        // Парсим группы из URL-параметров ссылки
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const chatsData = urlParams.get('chats');
@@ -122,25 +118,25 @@
 
             if (chatsData) {
                 try {
-                    // Парсим передаваемый JSON
                     const chats = JSON.parse(decodeURIComponent(chatsData));
-                    select.innerHTML = ''; // Очищаем список
+                    select.innerHTML = '';
                     
-                    if (Object.keys(chats).length === 0) {
-                        select.innerHTML = '<option value="">Группы не найдены</option>';
+                    const keys = Object.keys(chats);
+                    if (keys.length === 0) {
+                        select.innerHTML = '<option value="">Нет сохраненных групп</option>';
                     } else {
-                        for (const [id, title] of Object.entries(chats)) {
+                        for (const id of keys) {
                             const option = document.createElement('option');
                             option.value = id;
-                            option.textContent = title;
+                            option.textContent = chats[id];
                             select.appendChild(option);
                         }
                     }
                 } catch (e) {
-                    select.innerHTML = '<option value="">Ошибка загрузки групп</option>';
+                    select.innerHTML = '<option value="">Ошибка списка групп</option>';
                 }
             } else {
-                select.innerHTML = '<option value="">Нет известных групп</option>';
+                select.innerHTML = '<option value="">Напиши сообщение в группе!</option>';
             }
         };
 
@@ -161,7 +157,7 @@
             const text = document.getElementById('manualText').value.trim();
 
             if (!chatId) {
-                alert("Сначала выбери группу из списка!");
+                alert("Сначала выбери группу!");
                 return;
             }
             if (!text) {

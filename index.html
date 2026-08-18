@@ -3,50 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель управления</title>
+    <title>AI Admin</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #18222d); color: var(--tg-theme-text-color, #fff); padding: 20px; }
-        .card { background: var(--tg-theme-secondary-bg-color, #232e3c); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        textarea, input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #1c2531; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #2ea6ff; border: none; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; }
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        body { font-family: sans-serif; background: #18222d; color: #fff; padding: 15px; margin: 0; }
+        .card { background: #232e3c; padding: 15px; border-radius: 12px; margin-bottom: 12px; }
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        textarea, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #1c2531; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: #2ea6ff; border: none; border-radius: 10px; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: #2ea6ff; }
         input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
+    <h2>⚡ AI Control Panel</h2>
     <div class="card">
         <div class="row">
-            <span>Включить бота</span>
+            <span>Бот включен</span>
             <label class="switch"><input type="checkbox" id="botEnabled" checked><span class="slider"></span></label>
         </div>
         <div class="row">
             <span>Отвечать в группах</span>
             <label class="switch"><input type="checkbox" id="groupEnabled" checked><span class="slider"></span></label>
         </div>
-        <label>Шанс авто-ответа (0-100%):</label>
-        <input type="number" id="autoChance" value="15">
+        <div style="margin-top: 10px;">
+            <label>Шанс ответа в чате (%):</label>
+            <input type="number" id="autoChance" value="15" min="0" max="100">
+        </div>
     </div>
 
-    <label>Живые знания (контекст):</label>
-    <textarea id="knowledge" rows="4" placeholder="Напиши, о чем бот должен знать прямо сейчас..."></textarea>
+    <div class="card">
+        <label>Живые знания (контекст):</label>
+        <textarea id="knowledge" rows="3" placeholder="Что бот должен знать прямо сейчас..."></textarea>
+    </div>
 
-    <button onclick="save()">Сохранить настройки</button>
+    <button onclick="saveSettings()">Сохранить настройки</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        function save() {
+        tg.ready();
+        tg.expand();
+
+        function saveSettings() {
             const data = {
-                botEnabled: document.getElementById('botEnabled').checked,
-                groupEnabled: document.getElementById('groupEnabled').checked,
-                autoChance: parseInt(document.getElementById('autoChance').value),
+                bot_enabled: document.getElementById('botEnabled').checked,
+                group_enabled: document.getElementById('groupEnabled').checked,
+                auto_chance: parseInt(document.getElementById('autoChance').value) || 0,
                 knowledge: document.getElementById('knowledge').value
             };
+            
+            // Отправка данных бота в Telegram
             tg.sendData(JSON.stringify(data));
         }
     </script>
